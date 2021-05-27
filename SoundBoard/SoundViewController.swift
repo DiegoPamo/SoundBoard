@@ -14,22 +14,54 @@ class SoundViewController: UIViewController {
     @IBOutlet weak var reproducirButton: UIButton!
     @IBOutlet weak var nombreTextField: UITextField!
     @IBOutlet weak var agregarButton: UIButton!
+    @IBOutlet weak var timerLabel: UILabel!
     
     var grabarAudio:AVAudioRecorder?
     var reproducirAudio:AVAudioPlayer?
     var audioURL:URL?
+    
+    var timer:Timer = Timer()
+    var count:Int = 0
+    var timerCounting:Bool = false
+    
     @IBAction func grabarTapped(_ sender: Any) {
-        if grabarAudio!.isRecording{
+        if grabarAudio!.isRecording && timerCounting{
+            timer.invalidate()
             grabarAudio?.stop()
             grabarButton.setTitle("GRABAR", for: .normal)
             reproducirButton.isEnabled = true
             agregarButton.isEnabled = true
         }else{
+            timerCounting = true
             grabarAudio?.record()
             grabarButton.setTitle("DETENER", for: .normal)
             reproducirButton.isEnabled = false
+            timer = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(timeCounter), userInfo: nil, repeats: true)
         }
     }
+    
+    @objc func timeCounter() -> Void
+    {
+        count = count + 1
+        let time = secondsToHoursMinutesSeconds(seconds: count)
+        let timeString = makeTimeString(hours: time.0, minutes: time.1, seconds: time.2)
+        timerLabel.text = timeString
+    }
+    
+    func secondsToHoursMinutesSeconds(seconds:Int)->(Int,Int,Int){
+        return ((seconds/3600),((seconds % 3600)/60),((seconds % 3600)%60))
+    }
+    
+    func makeTimeString(hours:Int,minutes:Int,seconds:Int) -> String {
+        var timeString = ""
+        timeString += String(format: "%02d", hours)
+        timeString += " : "
+        timeString += String(format: "%02d", minutes)
+        timeString += " : "
+        timeString += String(format: "%02d", seconds)
+        return timeString
+    }
+    
     @IBAction func reproducirTapped(_ sender: Any) {
         do{
             try reproducirAudio = AVAudioPlayer(contentsOf: audioURL!)
@@ -43,6 +75,7 @@ class SoundViewController: UIViewController {
         let grabacion = Grabacion(context:context)
         grabacion.nombre = nombreTextField.text
         grabacion.audio = NSData(contentsOf: audioURL!)! as Data
+        grabacion.duracion = timerLabel.text
         (UIApplication.shared.delegate as! AppDelegate).saveContext()
         navigationController!.popViewController(animated: true)
     }

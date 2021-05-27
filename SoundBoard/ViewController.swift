@@ -35,9 +35,10 @@ class ViewController: UIViewController,UITableViewDelegate, UITableViewDataSourc
        }
        
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-           let cell = UITableViewCell()
+           let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
            let grabacion = grabaciones[indexPath.row]
            cell.textLabel?.text = grabacion.nombre
+           cell.detailTextLabel?.text = grabacion.duracion
            return cell
        }
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
